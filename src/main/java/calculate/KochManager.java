@@ -7,6 +7,7 @@ package calculate;
 import java.util.ArrayList;
 import fun3kochfractalfx.FUN3KochFractalFX;
 import timeutil.TimeStamp;
+import java.util.concurrent.CountDownLatch;
 
 /**
  *
@@ -20,7 +21,7 @@ public class KochManager {
     private FUN3KochFractalFX application;
     private TimeStamp tsCalc;
     private TimeStamp tsDraw;
-    
+
     public KochManager(FUN3KochFractalFX application) {
         this.edges = new ArrayList<Edge>();
         this.koch = new KochFractal(this);
@@ -34,12 +35,28 @@ public class KochManager {
         koch.setLevel(nxt);
         tsCalc.init();
         tsCalc.setBegin("Begin calculating");
-        koch.generateLeftEdge();
-        koch.generateBottomEdge();
-        koch.generateRightEdge();
+
+
+        CountDownLatch doneSignal = new CountDownLatch(3);
+
+        Thread threadOne = new Thread(new EdgeGenerator(koch, EdgeSides.Left, doneSignal));
+        Thread threadTwo = new Thread(new EdgeGenerator(koch, EdgeSides.Bottom, doneSignal));
+        Thread threadThree = new Thread(new EdgeGenerator(koch, EdgeSides.Right, doneSignal));
+
+        threadOne.start();
+        threadTwo.start();
+        threadThree.start();
+
+        try {
+            doneSignal.await();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
         tsCalc.setEnd("End calculating");
         application.setTextNrEdges("" + koch.getNrOfEdges());
         application.setTextCalc(tsCalc.toString());
+
         drawEdges();
     }
     
@@ -54,7 +71,7 @@ public class KochManager {
         application.setTextDraw(tsDraw.toString());
     }
     
-    public void addEdge(Edge e) {
+    public synchronized void addEdge(Edge e) {
         edges.add(e);
     }
 }
