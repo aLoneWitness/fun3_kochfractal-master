@@ -6,7 +6,10 @@ package calculate;
 
 import java.util.ArrayList;
 import fun3kochfractalfx.FUN3KochFractalFX;
+import observer.IListener;
 import timeutil.TimeStamp;
+
+import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ThreadPoolExecutor;
 
@@ -15,7 +18,7 @@ import java.util.concurrent.ThreadPoolExecutor;
  * @author Nico Kuijpers
  * Modified for FUN3 by Gertjan Schouten
  */
-public class KochManager {
+public class KochManager implements IListener {
     
     private ArrayList<Edge> edges;
     private FUN3KochFractalFX application;
@@ -35,6 +38,10 @@ public class KochManager {
         this.application = application;
         this.tsCalc = new TimeStamp();
         this.tsDraw = new TimeStamp();
+
+        leftGen.addListener(this);
+        rightGen.addListener(this);
+        bottomGen.addListener(this);
     }
     
     public void changeLevel(int nxt) {
@@ -71,7 +78,6 @@ public class KochManager {
         }
 
         tsCalc.setEnd("End calculating");
-        // TODO: get number of edges and display to GUI.
         application.setTextNrEdges("" + this.edges.size());
         application.setTextCalc(tsCalc.toString());
 
@@ -89,7 +95,13 @@ public class KochManager {
         application.setTextDraw(tsDraw.toString());
     }
     
-    public synchronized void addEdge(Edge e) {
-        edges.add(e);
+    @Override
+    synchronized public void update(Object object) {
+        try{
+            ArrayList<Edge> edges = (ArrayList<Edge>) object;
+            this.edges.addAll(edges);
+        }catch(Exception ex){
+            ex.printStackTrace();
+        }
     }
 }

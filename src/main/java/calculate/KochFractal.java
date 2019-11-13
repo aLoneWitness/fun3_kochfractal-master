@@ -6,6 +6,8 @@ package calculate;
 
 import javafx.scene.paint.Color;
 
+import java.util.Observable;
+
 /**
  *
  * @author Peter Boots
