@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import fun3kochfractalfx.FUN3KochFractalFX;
 import timeutil.TimeStamp;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ThreadPoolExecutor;
 
 /**
  *
@@ -16,32 +17,48 @@ import java.util.concurrent.CountDownLatch;
  */
 public class KochManager {
     
-    private KochFractal koch;
     private ArrayList<Edge> edges;
     private FUN3KochFractalFX application;
     private TimeStamp tsCalc;
     private TimeStamp tsDraw;
 
+    private EdgeGenerator leftGen = new EdgeGenerator(EdgeSides.Left, this);
+    private EdgeGenerator rightGen = new EdgeGenerator(EdgeSides.Right, this);
+    private EdgeGenerator bottomGen = new EdgeGenerator(EdgeSides.Bottom, this);
+
+    private Thread threadOne = new Thread(leftGen);
+    private Thread threadTwo = new Thread(rightGen);
+    private Thread threadThree = new Thread(bottomGen);
+
     public KochManager(FUN3KochFractalFX application) {
         this.edges = new ArrayList<Edge>();
-        this.koch = new KochFractal(this);
         this.application = application;
         this.tsCalc = new TimeStamp();
         this.tsDraw = new TimeStamp();
     }
     
     public void changeLevel(int nxt) {
+        threadOne.interrupt();
+        threadTwo.interrupt();
+        threadThree.interrupt();
+
         edges.clear();
-        koch.setLevel(nxt);
         tsCalc.init();
         tsCalc.setBegin("Begin calculating");
 
-
         CountDownLatch doneSignal = new CountDownLatch(3);
 
-        Thread threadOne = new Thread(new EdgeGenerator(koch, EdgeSides.Left, doneSignal));
-        Thread threadTwo = new Thread(new EdgeGenerator(koch, EdgeSides.Bottom, doneSignal));
-        Thread threadThree = new Thread(new EdgeGenerator(koch, EdgeSides.Right, doneSignal));
+        threadOne = new Thread(leftGen);
+        threadTwo = new Thread(rightGen);
+        threadThree = new Thread(bottomGen);
+
+        leftGen.setLevel(nxt);
+        rightGen.setLevel(nxt);
+        bottomGen.setLevel(nxt);
+
+        leftGen.setLatch(doneSignal);
+        rightGen.setLatch(doneSignal);
+        bottomGen.setLatch(doneSignal);
 
         threadOne.start();
         threadTwo.start();
@@ -54,7 +71,8 @@ public class KochManager {
         }
 
         tsCalc.setEnd("End calculating");
-        application.setTextNrEdges("" + koch.getNrOfEdges());
+        // TODO: get number of edges and display to GUI.
+        application.setTextNrEdges("" + this.edges.size());
         application.setTextCalc(tsCalc.toString());
 
         drawEdges();
