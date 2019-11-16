@@ -1,7 +1,9 @@
 package calculate;
 
+import javafx.application.Platform;
 import javafx.concurrent.Task;
 import observer.IListener;
+import timeutil.TimeStamp;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -13,13 +15,17 @@ public class EdgeGenerator extends Task implements Callable<List<Edge>>, IListen
     private ArrayList<Edge> edges;
     private EdgeSides side;
     private int maxEdges;
+    private KochManager manager;
 
-    public EdgeGenerator(EdgeSides side, int level){
+    private TimeStamp tsCalc = new TimeStamp();
+
+    public EdgeGenerator(EdgeSides side, int level, KochManager manager){
         this.koch = new KochFractal(this);
         this.side = side;
         this.edges = new ArrayList<>();
         this.koch.setLevel(level);
         this.koch.addListener(this);
+        this.manager = manager;
 
         maxEdges = this.koch.getNrOfEdges() / 3;
     }
@@ -38,6 +44,9 @@ public class EdgeGenerator extends Task implements Callable<List<Edge>>, IListen
 
     @Override
     public List<Edge> call() throws Exception {
+        tsCalc.init();
+        tsCalc.setBegin("Begin calculating.");
+
         this.edges.clear();
         switch(side){
             case Left:
@@ -51,8 +60,17 @@ public class EdgeGenerator extends Task implements Callable<List<Edge>>, IListen
                 break;
         }
 
+        Platform.runLater(new Runnable() {
+            @Override
+            public void run() {
+                manager.onDone();
+            }
+        });
+
         return this.edges;
     }
+
+
 
 
     @Override
