@@ -11,6 +11,7 @@ import javafx.scene.Scene;
 import javafx.scene.canvas.*;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.ProgressBar;
 import javafx.scene.image.*;
 import javafx.scene.input.*;
 import javafx.scene.layout.GridPane;
@@ -59,6 +60,17 @@ public class FUN3KochFractalFX extends Application {
     private static final int THRESHOLD = 200_000;
     private final WritableImage image = new WritableImage(kpWidth, kpHeight);
 
+    private Label progressBarLeftLabel;
+
+
+
+    private Label progressBarRightLabel;
+    private Label progressBarBottomLabel;
+
+    private ProgressBar progressBarLeft;
+    private ProgressBar progressBarRight;
+    private ProgressBar progressBarBottom;
+
     @Override
     public void start(Stage primaryStage) {
        
@@ -98,7 +110,27 @@ public class FUN3KochFractalFX extends Application {
         // Label to present current level of Koch fractal
         labelLevel = new Label("Level: " + currentLevel);
         grid.add(labelLevel, 0, 6);
-        
+
+        progressBarLeftLabel = new Label("Progress Left:");
+        grid.add(progressBarLeftLabel, 0, 8, 10, 1);
+        progressBarRightLabel = new Label("Progress Right:");
+        grid.add(progressBarRightLabel, 0, 10, 10, 1);
+        progressBarBottomLabel = new Label("Progress Bottom:");
+        grid.add(progressBarBottomLabel, 0, 12, 10, 1);
+        progressBarLeft = new ProgressBar();
+        grid.add(progressBarLeft, 5, 8, 30, 1);
+        progressBarRight = new ProgressBar();
+        grid.add(progressBarRight, 5, 10, 30, 1);
+        progressBarBottom = new ProgressBar();
+        grid.add(progressBarBottom, 5, 12, 30, 1);
+        progressBarLeftLabel = new Label();
+        grid.add(progressBarLeftLabel, 6, 8, 10, 1);
+        progressBarRightLabel = new Label();
+        grid.add(progressBarRightLabel, 6, 10, 10, 1);
+        progressBarBottomLabel = new Label();
+        grid.add(progressBarBottomLabel, 6, 12, 10, 1);
+
+
         // Button to increase level of Koch fractal
         Button buttonIncreaseLevel = new Button();
         buttonIncreaseLevel.setText("Increase Level");
@@ -165,7 +197,7 @@ public class FUN3KochFractalFX extends Application {
         
         // Create the scene and add the grid pane
         Group root = new Group();
-        Scene scene = new Scene(root, kpWidth+50, kpHeight+170);
+        Scene scene = new Scene(root, kpWidth+50, kpHeight+300);
         root.getChildren().add(grid);
         
         // Define title and assign the scene for main window
@@ -233,7 +265,32 @@ public class FUN3KochFractalFX extends Application {
             }
         });
     }
-    
+
+    public ProgressBar getProgressBarLeft() {
+        return progressBarLeft;
+    }
+
+    public ProgressBar getProgressBarRight() {
+        return progressBarRight;
+    }
+
+    public ProgressBar getProgressBarBottom() {
+        return progressBarBottom;
+    }
+
+    public Label getProgressBarLeftLabel() {
+        return progressBarLeftLabel;
+    }
+
+    public Label getProgressBarRightLabel() {
+        return progressBarRightLabel;
+    }
+
+    public Label getProgressBarBottomLabel() {
+        return progressBarBottomLabel;
+    }
+
+
     private void increaseLevelButtonActionPerformed(ActionEvent event) {
         if (currentLevel < 12) {
             // resetZoom();

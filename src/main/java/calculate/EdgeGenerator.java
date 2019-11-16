@@ -2,37 +2,42 @@ package calculate;
 
 import javafx.concurrent.Task;
 import observer.IListener;
-import observer.ISubject;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
 
-public class EdgeGenerator implements Runnable, ISubject {
-    private KochManager manager;
+public class EdgeGenerator extends Task implements Callable<List<Edge>>, IListener {
     private KochFractal koch;
     private ArrayList<Edge> edges;
     private EdgeSides side;
-    private CountDownLatch doneSignal;
-    private List<IListener> listeners = new ArrayList<>();
+    private int maxEdges;
 
-    public EdgeGenerator(EdgeSides side, KochManager manager){
-        this.manager = manager;
+    public EdgeGenerator(EdgeSides side, int level){
         this.koch = new KochFractal(this);
         this.side = side;
         this.edges = new ArrayList<>();
+        this.koch.setLevel(level);
+        this.koch.addListener(this);
+
+        maxEdges = this.koch.getNrOfEdges() / 3;
     }
 
-    void setLevel(int level){
-        koch.setLevel(level);
-    }
+//    void setLevel(int level){
+//        koch.setLevel(level);
+//    }
+//
+//    void setLatch(CountDownLatch latch){
+//        this.doneSignal = latch;
+//    }
 
-    void setLatch(CountDownLatch latch){
-        this.doneSignal = latch;
+    void addEdge(Edge e){
+        this.edges.add(e);
     }
 
     @Override
-    public void run() {
+    public List<Edge> call() throws Exception {
         this.edges.clear();
         switch(side){
             case Left:
@@ -46,21 +51,14 @@ public class EdgeGenerator implements Runnable, ISubject {
                 break;
         }
 
-        this.notifyListeners(this.edges);
-        doneSignal.countDown();
+        return this.edges;
     }
 
-    void addEdge(Edge e){
-        this.edges.add(e);
-    }
 
     @Override
-    public void addListener(IListener listener) {
-        this.listeners.add(listener);
-    }
-
-    @Override
-    public void notifyListeners(Object object) {
-        this.listeners.forEach(listener -> listener.update(object));
+    public void update(Object object) {
+        addEdge((Edge) object);
+        updateProgress(this.edges.size(), maxEdges);
+        updateMessage("Nr of edges: " + this.edges.size());
     }
 }

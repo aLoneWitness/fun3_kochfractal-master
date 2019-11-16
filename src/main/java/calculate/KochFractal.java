@@ -5,7 +5,11 @@
 package calculate;
 
 import javafx.scene.paint.Color;
+import observer.IListener;
+import observer.ISubject;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Observable;
 
 /**
@@ -13,13 +17,15 @@ import java.util.Observable;
  * @author Peter Boots
  * Modified for FUN3 by Gertjan Schouten
  */
-public class KochFractal {
+public class KochFractal implements ISubject {
 
     private int level = 1;      // The current level of the fractal
     private int nrOfEdges = 3;  // The number of edges in the current level of the fractal
     private float hue;          // Hue value of color for next edge
     private boolean cancelled;  // Flag to indicate that calculation has been cancelled
     private EdgeGenerator edgeGenerator;
+
+    private List<IListener> listeners = new ArrayList<>();
 
     public KochFractal(EdgeGenerator generator) {
         this.edgeGenerator = generator;
@@ -31,6 +37,7 @@ public class KochFractal {
                 hue = hue + 1.0f / nrOfEdges;
                 Edge e = new Edge(ax, ay, bx, by, Color.hsb(hue*360.0, 1.0, 1.0));
                 this.edgeGenerator.addEdge(e);
+                notifyListeners(e);
             } else {
                 double angle = Math.PI / 3.0 + Math.atan2(by - ay, bx - ax);
                 double distabdiv3 = Math.sqrt((bx - ax) * (bx - ax) + (by - ay) * (by - ay)) / 3;
@@ -79,5 +86,15 @@ public class KochFractal {
 
     public int getNrOfEdges() {
         return nrOfEdges;
+    }
+
+    @Override
+    public void addListener(IListener listener) {
+        this.listeners.add(listener);
+    }
+
+    @Override
+    public void notifyListeners(Object object) {
+        this.listeners.forEach(listener -> listener.update(object));
     }
 }
